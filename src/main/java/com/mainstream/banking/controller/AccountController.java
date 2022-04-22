@@ -13,7 +13,7 @@ import java.security.Principal;
 import java.util.List;
 
 @Controller
-@RequestMapping("bank-api/account")
+@RequestMapping("/bank-api/account")
 public class AccountController {
 
 
@@ -49,7 +49,7 @@ public class AccountController {
         model.addAttribute("currentAccount", currentAccount);
         model.addAttribute("currentAccountTransactionHistory", currentAccountTransactionHistory);
 
-        return "savingsAccount";
+        return "currentAccount";
     }
 
 
@@ -79,6 +79,30 @@ public class AccountController {
     @RequestMapping(value = "/withdraw", method = RequestMethod.POST)
     public String withdrawPOST(@ModelAttribute("amount") String amount, @ModelAttribute("accountType") String accountType, Principal principal) {
         accountService.withdraw(accountType, Double.parseDouble(amount), principal);
+
+        return "redirect:/home";
+    }
+
+    @RequestMapping(value = "/betweenAccounts", method = RequestMethod.GET)
+    public String betweenAccounts(Model model) {
+        model.addAttribute("transferFrom", "");
+        model.addAttribute("transferTo", "");
+        model.addAttribute("amount", "");
+
+        return "betweenAccounts";
+    }
+
+    @RequestMapping(value = "/betweenAccounts", method = RequestMethod.POST)
+    public String betweenAccountsPost(
+            @ModelAttribute("transferFrom") String transferFrom,
+            @ModelAttribute("transferTo") String transferTo,
+            @ModelAttribute("amount") double amount,
+            Principal principal
+    ) throws Exception {
+        User user = userService.findByUsername(principal.getName());
+        SavingsAccount savingsAccount = user.getSavingsAccount();
+        CurrentAccount currentAccount = user.getCurrentAccount();
+        transactionService.betweenAccountsTransfer(transferFrom, transferTo, amount, savingsAccount, currentAccount);
 
         return "redirect:/home";
     }

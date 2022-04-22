@@ -12,8 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
-import java.util.Set;
+
 
 
 @Service
@@ -52,12 +51,6 @@ public class UserService {
         } else {
             String encryptedPassword = passwordEncoder.encode(user.getPassword());
             user.setPassword(encryptedPassword);
-
-//            for (UserRole ur : userRoles) {
-//                roleRepository.save(ur.getRole());
-//            }
-
-           // user.getUserRoles().addAll(userRoles);
 
             user.setSavingsAccount(accountService.createSavingsAccount());
             user.setCurrentAccount(accountService.createCurrentAccount());

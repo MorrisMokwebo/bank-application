@@ -51,7 +51,7 @@ public class MainController {
         model.addAttribute("savingsAccount", savingsAccount);
         model.addAttribute("currentAccount", currentAccount);
 
-        return "userFront";
+        return "home";
     }
 
 }

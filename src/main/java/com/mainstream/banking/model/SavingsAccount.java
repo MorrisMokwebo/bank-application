@@ -24,4 +24,7 @@ public class SavingsAccount {
     @OneToMany(mappedBy = "savingsAccount", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<SavingsAccountTransaction> savingsAccountTransactionHistory;
+
+    @Enumerated(EnumType.STRING)
+    private Status accountStatus;
 }

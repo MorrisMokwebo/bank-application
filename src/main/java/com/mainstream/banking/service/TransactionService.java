@@ -68,19 +68,28 @@ public class TransactionService {
 
             SavingsAccountTransaction savingsAccountTransaction  =
                     new SavingsAccountTransaction(date, "Between account transfer from "+transferFrom+" to "+transferTo, "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
+            CurrentAccountTransaction currentAccountTransaction =
+                    new CurrentAccountTransaction  (date, "Between account transfer from "+transferFrom+" to "+transferTo, "Transfer", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
 
-
+            currentAccountTransactionRepository.save(currentAccountTransaction);
             savingsAccountTransactionRepository.save(savingsAccountTransaction);
+
         } else if (transferFrom.equalsIgnoreCase("Current") && transferTo.equalsIgnoreCase("Savings")) {
-            currentAccount.setAccountBalance(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)));
-            savingsAccount.setAccountBalance(currentAccount.getAccountBalance().add(new BigDecimal(amount)));
-            savingsAccountRepository.save(savingsAccount);
+            currentAccount.setAccountBalance(currentAccount.getAccountBalance().subtract(new BigDecimal(amount)));
+            savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().add(new BigDecimal(amount)));
             currentAccountRepository.save(currentAccount);
+            savingsAccountRepository.save(savingsAccount);
+
 
             Date date = new Date();
 
-            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction  (date, "Between account transfer from "+transferFrom+" to "+transferTo, "Transfer", "Finished", amount, savingsAccount.getAccountBalance(), currentAccount);
+            CurrentAccountTransaction currentAccountTransaction =
+                    new CurrentAccountTransaction  (date, "Between account transfer from "+transferFrom+" to "+transferTo, "Transfer", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
+            SavingsAccountTransaction savingsAccountTransaction  =
+                    new SavingsAccountTransaction(date, "Between account transfer from "+transferFrom+" to "+transferTo, "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
+
             currentAccountTransactionRepository.save(currentAccountTransaction);
+            savingsAccountTransactionRepository.save(savingsAccountTransaction);
         } else {
             throw new Exception("Invalid Transfer");
         }

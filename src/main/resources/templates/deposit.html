@@ -6,13 +6,13 @@
 <div class="container main">
     <div class="row">
         <div class="col-md-6">
-            <form th:action="@{/account/deposit}" method="post">
+            <form th:action="@{/bank-api/account/deposit}" method="post">
                 <div class="form-group" >
                     <label for="accountType">1. Please select the account you would like to deposit:</label>
                     <select class="form-control" th:value="${accountType}" name="accountType" id="accountType" required="required">
                         <option disabled="disabled" selected="selected"> -- select your account -- </option>
-                        <option>Primary</option>
                         <option>Savings</option>
+                        <option>Current</option>
                     </select>
                     <br />
                 </div>

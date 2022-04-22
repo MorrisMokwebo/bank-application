@@ -15,7 +15,6 @@ import java.util.Set;
 @Setter
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private int roleId;
 
     private String name;

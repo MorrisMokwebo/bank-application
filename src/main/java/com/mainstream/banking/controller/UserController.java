@@ -11,11 +11,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.HashSet;
-import java.util.Set;
 
 @Controller
-//@RequestMapping("/bank-api/user")
 public class UserController {
 
     @Autowired
@@ -27,8 +24,7 @@ public class UserController {
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public String register(@ModelAttribute("user") User user, Model model) {
 
-        //Set<UserRole> userRoles = new HashSet<>();
-       // userRoles.add(new UserRole(user, roleRepository.findByName("ROLE_USER")));
+
 
         userService.createUser(user);
 

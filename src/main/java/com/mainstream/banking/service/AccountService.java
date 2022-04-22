@@ -4,6 +4,8 @@ import com.mainstream.banking.model.*;
 import com.mainstream.banking.repository.CurrentAccountRepository;
 import com.mainstream.banking.repository.SavingsAccountRepository;
 import com.mainstream.banking.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +16,7 @@ import java.util.Date;
 @Service
 public class AccountService {
     private static int nextAccountNumber = 11223145;
-
+    private static final Logger LOG = LoggerFactory.getLogger(AccountService.class);
     @Autowired
     private SavingsAccountRepository savingsAccountRepository;
 
@@ -32,12 +34,15 @@ public class AccountService {
         SavingsAccount primaryAccount = new SavingsAccount();
         primaryAccount.setAccountBalance(new BigDecimal(0.0));
         primaryAccount.setAccountNumber(accountGen());
+        primaryAccount.setAccountStatus(Status.INACTIVE);
+
 
         savingsAccountRepository.save(primaryAccount);
         return savingsAccountRepository.findByAccountNumber(primaryAccount.getAccountNumber());
     }
 
     public CurrentAccount createCurrentAccount() {
+        final double overDraft = 150000.00;
         CurrentAccount currentAccount = new CurrentAccount();
         currentAccount.setAccountBalance(new BigDecimal(0.0));
         currentAccount.setAccountNumber(accountGen());
@@ -51,14 +56,21 @@ public class AccountService {
         User user = userRepository.findByUsername(principal.getName());
 
         if (accountType.equalsIgnoreCase("Savings")) {
-            SavingsAccount savingsAccount = user.getSavingsAccount();
-            savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().add(new BigDecimal(amount)));
-            savingsAccountRepository.save(savingsAccount);
 
-            Date date = new Date();
 
-            SavingsAccountTransaction savingsAccountTransaction = new SavingsAccountTransaction(date, "Deposit to Primary Account", "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
-            transactionService.saveSavingsDepositTransaction(savingsAccountTransaction);
+            if(amount < 1000){
+                LOG.info("To activate account please deposit R1000 or more ", user.getUsername());
+            }else{
+                SavingsAccount savingsAccount = user.getSavingsAccount();
+                savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().add(new BigDecimal(amount)));
+                savingsAccount.setAccountStatus(Status.ACTIVE);
+                savingsAccountRepository.save(savingsAccount);
+
+                Date date = new Date();
+
+                SavingsAccountTransaction savingsAccountTransaction = new SavingsAccountTransaction(date, "Deposit to Savings Account", "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
+                transactionService.saveSavingsDepositTransaction(savingsAccountTransaction);
+            }
 
         } else if (accountType.equalsIgnoreCase("Current")) {
             CurrentAccount currentAccount = user.getCurrentAccount();
@@ -66,7 +78,7 @@ public class AccountService {
             currentAccountRepository.save(currentAccount);
 
             Date date = new Date();
-            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Deposit to savings Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
+            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Deposit to Current Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
             transactionService.saveCurrentDepositTransaction(currentAccountTransaction);
         }
     }
@@ -74,16 +86,23 @@ public class AccountService {
     public void withdraw(String accountType, double amount, Principal principal) {
         User user = userRepository.findByUsername(principal.getName());
 
+        final BigDecimal checkAmountAgainst =  new BigDecimal("1000.00");
+
         if (accountType.equalsIgnoreCase("Savings")) {
             SavingsAccount savingsAccount = user.getSavingsAccount();
-            savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)));
-            savingsAccountRepository.save(savingsAccount);
+            //check if the account balance is greater than 1000
+            //savingsAccount.getAccountBalance().compareTo(checkAmountAgainst) == 1
 
+            if(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)).compareTo(checkAmountAgainst) == -1){
+                throw new RuntimeException("Cannot Proceed with the with the  withdrawal as funds are less than R1000");
+            }else{
+                savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)));
+                savingsAccountRepository.save(savingsAccount);
+                Date date = new Date();
 
-            Date date = new Date();
-
-            SavingsAccountTransaction savingsAccountTransaction = new SavingsAccountTransaction(date, "Withdraw from Primary Account", "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
-            transactionService.saveSavingsWithdrawTransaction(savingsAccountTransaction);
+                SavingsAccountTransaction savingsAccountTransaction = new SavingsAccountTransaction(date, "Withdraw from Savings Account", "Account", "Finished", amount, savingsAccount.getAccountBalance(), savingsAccount);
+                transactionService.saveSavingsWithdrawTransaction(savingsAccountTransaction);
+            }
 
         } else if (accountType.equalsIgnoreCase("Current")) {
             CurrentAccount currentAccount = user.getCurrentAccount();
@@ -91,7 +110,7 @@ public class AccountService {
             currentAccountRepository.save(currentAccount);
 
             Date date = new Date();
-            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Withdraw from savings Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
+            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Withdraw from Current Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
             transactionService.saveCurrentWithdrawTransaction(currentAccountTransaction);
         }
     }
@@ -99,4 +118,11 @@ public class AccountService {
     private int accountGen() {
         return ++nextAccountNumber;
     }
+//    private boolean checkIfSavingsHasEnoughFunds(SavingsAccount savingsAccount){
+//        final BigDecimal amount =  new BigDecimal("1000.00");
+//
+//        if(savingsAccount.getAccountBalance().compareTo(amount) == 1){
+//
+//        }
+//    }
 }
