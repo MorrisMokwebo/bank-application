@@ -23,25 +23,7 @@ public class UserController {
 
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
     public String register(@ModelAttribute("user") User user, Model model) {
-
-
-
         userService.createUser(user);
-
         return "redirect:/";
-    /*    if(userService.checkUserExists(user.getUsername(), user.getEmail()))  {
-
-            if (userService.checkEmailExists(user.getEmail())) {
-                model.addAttribute("emailExists", true);
-            }
-
-            if (userService.checkUsernameExists(user.getUsername())) {
-                model.addAttribute("usernameExists", true);
-            }
-
-            return "signup";
-        } else {
-
-        }*/
     }
 }

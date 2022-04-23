@@ -26,11 +26,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserSecurityService userSecurityService;
 
-    //private static final String SALT = "salt"; // Salt should be protected carefully
-
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        //return new BCryptPasswordEncoder(12, new SecureRandom(SALT.getBytes()));
         return new BCryptPasswordEncoder();
     }
 
