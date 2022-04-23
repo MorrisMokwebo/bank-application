@@ -71,6 +71,15 @@
                             <h1><i class="fa fa-usd" aria-hidden="true"></i> <span th:text="${currentAccount.accountBalance}">...</span></h1>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-xs-6">
+                            <!--<i class="fa fa-comments fa-5x"></i>-->
+                            <h2>Status: </h2>
+                        </div>
+                        <div class="col-xs-6 text-right">
+                            <h1><i class="fa fa-bell-o" aria-hidden="true"></i> <span th:text="${currentAccount.accountStatus}">...</span></h1>
+                        </div>
+                    </div>
                 </div>
                 <a th:href="@{bank-api/account/currentAccount}">
                     <div class="panel-footer">

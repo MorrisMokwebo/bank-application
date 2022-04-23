@@ -42,10 +42,11 @@ public class AccountService {
     }
 
     public CurrentAccount createCurrentAccount() {
-        final double overDraft = 150000.00;
+
         CurrentAccount currentAccount = new CurrentAccount();
-        currentAccount.setAccountBalance(new BigDecimal(0.0));
+        currentAccount.setAccountBalance(new BigDecimal(100000.0));
         currentAccount.setAccountNumber(accountGen());
+        currentAccount.setAccountStatus(Status.ACTIVE);
 
         currentAccountRepository.save(currentAccount);
 
@@ -94,7 +95,7 @@ public class AccountService {
             //savingsAccount.getAccountBalance().compareTo(checkAmountAgainst) == 1
 
             if(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)).compareTo(checkAmountAgainst) == -1){
-                throw new RuntimeException("Cannot Proceed with the with the  withdrawal as funds are less than R1000");
+                LOG.info("Cannot Proceed with the with the  withdrawal as funds are less than R1000");
             }else{
                 savingsAccount.setAccountBalance(savingsAccount.getAccountBalance().subtract(new BigDecimal(amount)));
                 savingsAccountRepository.save(savingsAccount);
@@ -106,12 +107,22 @@ public class AccountService {
 
         } else if (accountType.equalsIgnoreCase("Current")) {
             CurrentAccount currentAccount = user.getCurrentAccount();
-            currentAccount.setAccountBalance(currentAccount.getAccountBalance().subtract(new BigDecimal(amount)));
-            currentAccountRepository.save(currentAccount);
 
-            Date date = new Date();
-            CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Withdraw from Current Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
-            transactionService.saveCurrentWithdrawTransaction(currentAccountTransaction);
+            /*
+            * if current balance subtract the with drawal amount is less than 0.0, transaction will not be processed
+            * as this will leave the account is 0.0
+            * */
+            if(currentAccount.getAccountBalance().subtract(new BigDecimal(amount)).compareTo(new BigDecimal(0.00)) == -1){
+                LOG.info("Cannot withdraw more than the (Current Balance + Overdraft) of the account.");
+            }else{
+                currentAccount.setAccountBalance(currentAccount.getAccountBalance().subtract(new BigDecimal(amount)));
+                currentAccountRepository.save(currentAccount);
+
+                Date date = new Date();
+                CurrentAccountTransaction currentAccountTransaction = new CurrentAccountTransaction(date, "Withdraw from Current Account", "Account", "Finished", amount, currentAccount.getAccountBalance(), currentAccount);
+                transactionService.saveCurrentWithdrawTransaction(currentAccountTransaction);
+            }
+
         }
     }
 
